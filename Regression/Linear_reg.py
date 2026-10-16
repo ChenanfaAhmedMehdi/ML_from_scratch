@@ -25,7 +25,7 @@ class linear_regression():
         n, k = X.shape
         scaling_method=1
         Xs = self._scaling_features(X, scaling_method)
-        lr, epochs = 0.01, 1000
+        lr, epochs = self._determine_lr(Xs)
         w = np.zeros(k)
         b = 0
         for _ in range(epochs):
@@ -108,3 +108,11 @@ class linear_regression():
                 return w/abs_max, b
             case _:
                 raise ValueError(f"unknown scaling_method: {scaling_method}")
+    @staticmethod
+    def _determine_lr(Xs):
+        A = np.column_stack([np.ones(Xs.shape[0]), Xs])
+        H = 2 * A.T @ A / Xs.shape[0]
+        lr = 1 / np.linalg.eigvalsh(H).max()
+        tol = 1e-9
+        k = np.log(1 / tol) / (lr * np.linalg.eigvalsh(H).min())
+        return lr, int(np.ceil(k))
