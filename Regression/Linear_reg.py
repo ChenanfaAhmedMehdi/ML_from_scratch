@@ -71,6 +71,21 @@ class linear_regression():
         ### Score
         return (1 - SSE/TSS)
 
+    def poly_features(self, X, degree):
+        X = self._prepare(X)
+        number_col = X.shape[1]
+        if (degree < 1 or degree != int(degree)):
+            raise ValueError("degree is less then 1 or non-integer")
+        elif (degree == number_col):
+            return X
+        
+        if (degree > number_col):
+            for i in range(number_col,degree):
+                term = X[:,0] ** (i+1)
+                X = np.c_[X,term]
+        else:
+            X = X[:,:degree]
+        return X
     def print_parameters(self):
         print('slope:', self.coef_)
         print('intercept', self.intercept_)
