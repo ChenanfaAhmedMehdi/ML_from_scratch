@@ -116,8 +116,8 @@ class linear_regression():
                 avg, sigma = X.mean(axis=0), X.std(axis=0)
                 return w / sigma, b - (w * avg / sigma).sum()
             case 2: # Min-Max Scaling
-                maxX, minX = X.max(axis=0), X.min(axis=0)
-                return w /(maxX - minX), b - ((w * minX) / (maxX - minX)).sum()
+                max, min = X.max(axis=0), X.min(axis=0)
+                return w /(max - min), b - ((w * min) / (max - min)).sum()
             case 3: # Absolute Maximum
                 abs_max = np.abs(X).max(axis=0)
                 return w/abs_max, b
