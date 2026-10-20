@@ -1,4 +1,5 @@
 import numpy as np
+from itertools import product
 
 class linear_regression():
     def __init__(self):
@@ -74,18 +75,13 @@ class linear_regression():
     def poly_features(self, X, degree):
         X = self._prepare(X)
         number_col = X.shape[1]
-        if (degree < 1 or degree != int(degree)):
-            raise ValueError("degree is less then 1 or non-integer")
-        elif (degree == number_col):
-            return X
-        
-        if (degree > number_col):
-            for i in range(number_col,degree):
-                term = X[:,0] ** (i+1)
+        Xi = X
+        X = np.empty((Xi.shape[0],0))
+        for exponents in product(range(degree + 1), repeat = number_col):
+            if sum(exponents) <= degree:
+                term = np.prod(Xi ** exponents, axis=1)
                 X = np.c_[X,term]
-        else:
-            X = X[:,:degree]
-        return X
+        return X[:,1:]
     def print_parameters(self):
         print('slope:', self.coef_)
         print('intercept', self.intercept_)
