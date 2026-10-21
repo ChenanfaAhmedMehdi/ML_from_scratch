@@ -85,6 +85,12 @@ class linear_regression():
     def print_parameters(self):
         print('slope:', self.coef_)
         print('intercept', self.intercept_)
+    def BIC(self,X,y):
+        X, y = self._prepare(X,y)
+        n = X.shape[0]
+        pred = self.predict(X)
+        RSS = ((y - pred)**2).sum()
+        return n * np.log(RSS / n) + (X.shape[1] + 1) * np.log(n)
     @staticmethod
     def _scaling_features(X,scaling_method):
         match (scaling_method):
