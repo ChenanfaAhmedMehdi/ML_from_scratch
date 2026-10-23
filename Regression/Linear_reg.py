@@ -91,6 +91,24 @@ class linear_regression():
         pred = self.predict(X)
         RSS = ((y - pred)**2).sum()
         return n * np.log(RSS / n) + (X.shape[1] + 1) * np.log(n)
+        def determine_degree(self, X, y, start_or_end, end = None):
+        if (end is None): 
+            if(start_or_end < 2 or start_or_end != int(start_or_end)):
+                raise ValueError(f"degree must be an integer >= 2, got {start_or_end}")
+            start = 2
+            end = start_or_end
+        else:
+            if(start_or_end < 2 or start_or_end != int(start_or_end)):
+                raise ValueError(f"start degree must be an integer >= 2, got {start_or_end}")
+            elif (end < 2 or end != int(end)):
+                raise ValueError(f"end degree must be an integer >= 2, got {end}")
+            elif (end <= start_or_end):
+                raise ValueError(f"end degree ({end}) must be > start degree ({start_or_end})")
+            start = start_or_end
+        results = []
+        for i in range(start, end + 1):
+            results.append(self.BIC(self.poly_features(X,i),y))
+        return results.index(min(results)) + start
     @staticmethod
     def _scaling_features(X,scaling_method):
         match (scaling_method):
