@@ -72,12 +72,12 @@ class linear_regression():
         ### Score
         return (1 - SSE/TSS)
 
-    def poly_features(self, X, degree):
+    def poly_features(self, X,degree):
         X = self._prepare(X)
-        number_col = X.shape[1]
+        k = X.shape[1]
         Xi = X
         X = np.empty((Xi.shape[0],0))
-        for exponents in product(range(degree + 1), repeat = number_col):
+        for exponents in product(range(degree + 1), repeat=k):
             if sum(exponents) <= degree:
                 term = np.prod(Xi ** exponents, axis=1)
                 X = np.c_[X,term]
@@ -91,7 +91,7 @@ class linear_regression():
         pred = self.predict(X)
         RSS = ((y - pred)**2).sum()
         return n * np.log(RSS / n) + (X.shape[1] + 1) * np.log(n)
-        def determine_degree(self, X, y, start_or_end, end = None):
+    def determine_degree(self, X, y, start_or_end, end = None):
         if (end is None): 
             if(start_or_end < 2 or start_or_end != int(start_or_end)):
                 raise ValueError(f"degree must be an integer >= 2, got {start_or_end}")
