@@ -99,3 +99,47 @@ class linear_regression(base_model):
         tol = 1e-9
         k = np.log(1 / tol) / (lr * eig.min())
         return lr, int(np.ceil(k))
+    
+class elastic_net(base_model):
+    def __init__(self):
+        super().__init__()
+        self.alpha2 = 1.0
+    def fit(self,X,y,method="NE"):
+        if (method =="NE"):
+            self.normal_equation(X,y)
+        elif (method == "GD"):
+            self.gradient_descent(X,y)
+        else:
+            raise ValueError(f"unknown fitting method: {method}")
+    def normal_equation(self, X, y, lam=0.0):
+        X, y = self._prepare(X, y)
+        n, k = X.shape
+        Xb = np.c_[np.ones((n, 1)), X]
+        penalty = np.diag([0.0] + [1.0] * k)
+        A = np.linalg.inv(Xb.T @ Xb + 2 * lam * penalty) @ Xb.T @ y
+        self.intercept_ = A[0]
+        self.coef_ = A[1:]
+    def gradient_descent(self, X, y, lam = 0.0):
+        X, y = self._prepare(X, y)
+        n, k = X.shape
+        scaler = scaling_model()
+        Xs = scaler.scale(X)
+        lr, epochs = self._determine_lr(Xs, lam)
+        w = np.zeros(k)
+        b = 0
+        for _ in range(epochs):
+            error = y - (Xs @ w + b)
+            w -= lr * (-(2 / n) * (Xs.T @ error) +  2 * lam * w)
+            b -= lr * (-(2 / n) * error.sum())
+        self.coef_, self.intercept_ = scaler.descale_param(w, b)
+    @staticmethod
+    def _determine_lr(Xs, lam = 0.0):
+        n, c = Xs.shape
+        A = np.column_stack([np.ones(n), Xs])
+        penalty = np.diag([0.0] + [1.0] * c)
+        H = 2 * A.T @ A / n + 2 * lam * penalty
+        eig = np.linalg.eigvalsh(H)
+        lr = 1 / eig.max()
+        tol = 1e-9
+        k = np.log(1 / tol) / (lr * eig.min())
+        return lr, int(np.ceil(k))
