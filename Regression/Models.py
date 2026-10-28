@@ -89,6 +89,27 @@ class linear_regression(base_model):
             w -= lr * (-(2 / n) * (Xs.T @ error))
             b -= lr * (-(2 / n) * error.sum())
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
+    def coordinates_descent(self, X, y):
+        X,y = self._prepare(X,y)
+        n, k = X.shape
+        b_new = b = 0
+        w = np.zeros((k, 1))
+        w_new = w.copy()
+        for _ in range(1e5):
+            for i in range(k):
+                zi = X[:,i:i+1].T @ X[:,i:i+1]
+                ri = X[:,i:i+1].T @ ((y - X @ w_new - b) + X[:,i:i+1] * w_new[i,0])
+                w_new[i] = ri / zi 
+            b_new = (y - X @ w_new).sum() / n
+            if (max(np.max(np.abs(w_new - w)), abs(b_new - b)) < 1e-9):
+                b = b_new
+                w = w_new.copy()
+                break
+            b = b_new
+            w = w_new.copy()
+        else:
+            raise RuntimeError("Not fitted due to insufficient number of iterations")
+        self.coef_, self.intercept_ = w, b_new
     @staticmethod
     def _determine_lr(Xs):
         n = Xs.shape
