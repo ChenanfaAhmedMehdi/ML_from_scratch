@@ -61,13 +61,14 @@ class base_model():
             Xi = self.poly_features(X,i)
             results.append(BIC(self.predict(Xi), y, Xi.shape[1]))
         return results.index(min(results)) + start
-
 class linear_regression(base_model):
     def fit(self,X,y,method="NE"):
         if (method =="NE"):
             self.normal_equation(X,y)
         elif (method == "GD"):
             self.gradient_descent(X,y)
+        elif(method == "CD"):
+            self.coordinates_descent(X,y)
         else:
             raise ValueError(f"unknown fitting method: {method}")
     def normal_equation(self, X,y):
@@ -99,7 +100,7 @@ class linear_regression(base_model):
             for i in range(k):
                 zi = X[:,i:i+1].T @ X[:,i:i+1]
                 ri = X[:,i:i+1].T @ ((y - X @ w_new - b) + X[:,i:i+1] * w_new[i,0])
-                w_new[i] = ri / zi 
+                w_new[i] = ri / zi
             b_new = (y - X @ w_new).sum() / n
             if (max(np.max(np.abs(w_new - w)), abs(b_new - b)) < 1e-9):
                 b = b_new
@@ -122,14 +123,17 @@ class linear_regression(base_model):
         return lr, int(np.ceil(k))
     
 class elastic_net(base_model):
-    def __init__(self):
+    def __init__(self,L1_ratio = 0.5):
         super().__init__()
-        self.alpha2 = 1.0
-    def fit(self,X,y,method="NE"):
+        self.alpha = 1.0
+        self.ratio = L1_ratio
+    def fit(self,X,y,method="CD"):
         if (method =="NE"):
             self.normal_equation(X,y)
         elif (method == "GD"):
             self.gradient_descent(X,y)
+        elif(method == "CD"):
+            self.coordinates_descent(X,y)
         else:
             raise ValueError(f"unknown fitting method: {method}")
     def normal_equation(self, X, y, lam=0.0):
@@ -153,6 +157,36 @@ class elastic_net(base_model):
             w -= lr * (-(2 / n) * (Xs.T @ error) +  2 * lam * w)
             b -= lr * (-(2 / n) * error.sum())
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
+    def coordinates_descent(self, X, y):
+            X,y = self._prepare(X,y)
+            n, k = X.shape
+            b_new = b = 0
+            w = np.zeros((k, 1))
+            w_new = w.copy()
+            for _ in range(1e5):
+                for i in range(k):
+                    zi = ((X[:,i:i+1].T @ X[:,i:i+1]) / n).item()
+                    ri = ((X[:,i:i+1].T @ ((y - X @ w_new - b) + X[:,i:i+1] * w_new[i,0])) / n).item()
+                    soft_threshold = self.sign(ri) * max(abs(ri) - self.alpha * self.ratio, 0)
+                    w_new[i] = soft_threshold / (zi + self.alpha*(1 - self.ratio))
+                b_new = (y - X @ w_new).sum() / n
+                if (max(np.max(np.abs(w_new - w)), abs(b_new - b)) < 1e-9):
+                    b = b_new
+                    w = w_new.copy()
+                    break
+                b = b_new
+                w = w_new.copy()
+            else:
+                raise RuntimeError("Not fitted due to insufficient number of iterations")
+            self.coef_, self.intercept_ = w, b_new
+    @staticmethod
+    def sign(num):
+        if (num == 0):
+            return 0
+        elif (num > 0):
+            return 1
+        else:
+            return -1
     @staticmethod
     def _determine_lr(Xs, lam = 0.0):
         n, c = Xs.shape
