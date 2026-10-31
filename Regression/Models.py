@@ -96,7 +96,7 @@ class linear_regression(base_model):
         b_new = b = 0
         w = np.zeros((k, 1))
         w_new = w.copy()
-        for _ in range(1e5):
+        for _ in range(100_000):
             for i in range(k):
                 zi = X[:,i:i+1].T @ X[:,i:i+1]
                 ri = X[:,i:i+1].T @ ((y - X @ w_new - b) + X[:,i:i+1] * w_new[i,0])
@@ -163,7 +163,7 @@ class elastic_net(base_model):
             b_new = b = 0
             w = np.zeros((k, 1))
             w_new = w.copy()
-            for _ in range(1e5):
+            for _ in range(100_000):
                 for i in range(k):
                     zi = ((X[:,i:i+1].T @ X[:,i:i+1]) / n).item()
                     ri = ((X[:,i:i+1].T @ ((y - X @ w_new - b) + X[:,i:i+1] * w_new[i,0])) / n).item()
