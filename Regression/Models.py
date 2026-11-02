@@ -74,6 +74,7 @@ class base_model():
         results = []
         for i in range(start, end + 1):
             Xi = self.poly_features(X,i)
+            self.fit(Xi,y)
             results.append(BIC(self.predict(Xi), y, Xi.shape[1]))
         return results.index(min(results)) + start
 
