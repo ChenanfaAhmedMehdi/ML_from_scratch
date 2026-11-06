@@ -24,7 +24,7 @@ class base_model():
         w = np.zeros((k, 1))
         w_new = w.copy()
         for _ in range(100_000):
-            w_new = self._coordinate_update(X, y, b, w, n, k)
+            w_new = self._coordinate_update(X, y, b, w.copy(), n, k)
             b_new = (y - X @ w_new).sum() / n
             if (max(np.max(np.abs(w_new - w)), abs(b_new - b)) < 1e-9):
                 break
@@ -131,7 +131,8 @@ class ridge_regression(base_model):
         return lr, int(np.ceil(k))
 
 class linear_regression(ridge_regression(0)):
-    pass
+    def __init__(self):
+        super().__init__(0)
 
 class elastic_net(base_model):
     def __init__(self,L1_ratio = 0.5):
