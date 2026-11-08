@@ -96,7 +96,7 @@ class ridge_regression(base_model):
         n, k = X.shape
         Xb = np.c_[np.ones((n, 1)), X]
         penalty = np.diag([0.0] + [1.0] * k) 
-        A = np.linalg.inv(Xb.T @ Xb + 2 * self.alpha * penalty) @ Xb.T @ y
+        A = np.linalg.inv(Xb.T @ Xb + self.alpha * penalty) @ Xb.T @ y
         self.intercept_ = A[0]
         self.coef_ = A[1:]
     def gradient_descent(self, X, y):
@@ -109,7 +109,7 @@ class ridge_regression(base_model):
         b = 0
         for _ in range(epochs):
             error = y - (Xs @ w + b)
-            w -= lr * (-(2 / n) * (Xs.T @ error) + 2 * self.alpha * w)
+            w -= lr * (-(2 / n) * (Xs.T @ error - self.alpha * w))
             b -= lr * (-(2 / n) * error.sum())
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
     def _coordinate_update(self, X, y, b, w_new, n, k):
