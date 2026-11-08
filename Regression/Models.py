@@ -123,7 +123,7 @@ class ridge_regression(base_model):
         n, k = Xs.shape
         A = np.column_stack([np.ones(n), Xs])
         penalty = np.diag([0.0] + [1.0] * k)
-        H = 2 * A.T @ A / n + 2 * self.alpha * penalty
+        H = 2 * A.T @ A / n + 2 * (2 * self.alpha / n) * penalty
         eig = np.linalg.eigvalsh(H)
         lr = 1 / eig.max()
         tol = 1e-9
