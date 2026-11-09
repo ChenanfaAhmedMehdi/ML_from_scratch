@@ -130,7 +130,7 @@ class ridge_regression(base_model):
         k = np.log(1 / tol) / (lr * eig.min())
         return lr, int(np.ceil(k))
 
-class linear_regression(ridge_regression(0)):
+class linear_regression(ridge_regression):
     def __init__(self):
         super().__init__(0)
 
