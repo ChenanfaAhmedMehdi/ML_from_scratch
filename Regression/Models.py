@@ -40,7 +40,7 @@ class base_model():
             X = X.reshape(-1,1)
         if (y is None):
             return X
-        y = np.asarray(y, dtype=float).ravel()
+        y = np.asarray(y, dtype=float).reshape(-1,1)
         if X.shape[0] != y.shape[0]:
             raise ValueError(f"X has {X.shape[0]} samples but y has {y.shape[0]}")
         return X, y
@@ -58,6 +58,7 @@ class base_model():
         print('slope:', self.coef_)
         print('intercept', self.intercept_)
     def determine_degree(self, X, y, start_or_end, end = None):
+        X, y = self._prepare(X,y)
         if (end is None): 
             if(start_or_end < 2 or start_or_end != int(start_or_end)):
                 raise ValueError(f"degree must be an integer >= 2, got {start_or_end}")
@@ -105,7 +106,7 @@ class ridge_regression(base_model):
         scaler = scaling_model()
         Xs = scaler.scale(X)
         lr, epochs = self._determine_lr(Xs)
-        w = np.zeros(k)
+        w = np.zeros(k).reshape(-1,1)
         b = 0
         for _ in range(epochs):
             error = y - (Xs @ w + b)
