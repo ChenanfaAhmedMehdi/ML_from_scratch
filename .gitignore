@@ -1,0 +1,4 @@
+#ignore testing file
+Regression/test.py 
+#ignore unfinished README file
+Regression/README.md
