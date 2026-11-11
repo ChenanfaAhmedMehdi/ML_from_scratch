@@ -142,6 +142,20 @@ class elastic_net(base_model):
         self.ratio = L1_ratio
     def fit(self,X,y):
         self.coordinate_descent(X,y)
+    def gradient_descent(self, X, y):
+        X, y = self._prepare(X, y)
+        n, k = X.shape
+        scaler = scaling_model()
+        Xs = scaler.scale(X)
+        lr, epochs = self._determine_lr(Xs) # work on _determine_lr
+        w = np.zeros(k).reshape(-1,1)
+        b = 0
+        for _ in range(epochs):
+            error = y - (Xs @ w + b)
+            w += lr * ((1 / n) * (Xs.T @ error ) + self.alpha * (1- self.ratio) * w)
+            w = self.sign(w) * np.maximum(np.abs(w)- lr * self.alpha * self.ratio, 0)
+            b += lr * ((1 / n) * error.sum())
+        self.coef_, self.intercept_ = scaler.descale_param(w, b)
     def _coordinate_update(self, X, y, b, w_new, n, k):
         for i in range(k):
             X_i = X[:,i:i+1]
@@ -152,9 +166,13 @@ class elastic_net(base_model):
         return w_new
     @staticmethod
     def sign(num):
-        if (num == 0):
-            return 0
-        elif (num > 0):
-            return 1
+        if (isinstance(num, np.ndarray)):
+            num = np.sign(num)
+            return num
         else:
-            return -1
+            if (num == 0):
+                return 0
+            elif (num > 0):
+                return 1
+            else:
+                return -1
