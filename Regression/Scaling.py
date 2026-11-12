@@ -8,7 +8,7 @@ class scaling_model():
         self.fitted = False
     def fit(self, X):
         if (self.method == 1):
-            self.avg_, self.sigma_ = X.mean(axis=0), X.std(axis=0)
+            self.avg, self.sigma = X.mean(axis=0), X.std(axis=0)
             if ((self.sigma_ == 0).any()):
                 raise ValueError("X has at least one constant feature")
         elif (self.method == 2):
