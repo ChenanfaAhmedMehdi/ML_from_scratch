@@ -103,7 +103,7 @@ class ridge_regression(base_model):
     def gradient_descent(self, X, y):
         X, y = self._prepare(X, y)
         n, k = X.shape
-        scaler = scaling_model()
+        scaler = scaling_model().fit(X)
         Xs = scaler.scale(X)
         lr, epochs = self._determine_lr(Xs)
         w = np.zeros(k).reshape(-1,1)
@@ -145,7 +145,7 @@ class elastic_net(base_model):
     def gradient_descent(self, X, y):
         X, y = self._prepare(X, y)
         n, k = X.shape
-        scaler = scaling_model()
+        scaler = scaling_model().fit(X)
         Xs = scaler.scale(X)
         lr, epochs = self._determine_lr(Xs) # work on _determine_lr
         w = np.zeros(k).reshape(-1,1)
