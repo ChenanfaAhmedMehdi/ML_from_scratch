@@ -9,7 +9,7 @@ class scaling_model():
     def fit(self, X):
         if (self.method == 1):
             self.avg, self.sigma = X.mean(axis=0), X.std(axis=0)
-            if ((self.sigma_ == 0).any()):
+            if ((self.sigma == 0).any()):
                 raise ValueError("X has at least one constant feature")
         elif (self.method == 2):
             self.max, self.min= X.max(axis=0), X.min(axis=0)
