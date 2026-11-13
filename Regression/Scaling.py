@@ -1,24 +1,25 @@
 import numpy as np
 class scaling_model():
-    def __init__(self, method=1):
+    def __init__(self):
         self.avg = self.sigma = self.max = self.min = self.abs_max = None
+        self.fitted = False
+    def fit(self, X, method = 1):
         if method not in (1, 2, 3):
             raise ValueError(f"unknown scaling method: {method}")
         self.method = method
-        self.fitted = False
-    def fit(self, X):
-        if (self.method == 1):
-            self.avg, self.sigma = X.mean(axis=0), X.std(axis=0)
-            if ((self.sigma == 0).any()):
-                raise ValueError("X has at least one constant feature")
-        elif (self.method == 2):
-            self.max, self.min= X.max(axis=0), X.min(axis=0)
-            if ((self.max - self.min == 0).any()):
-                raise ValueError("X has at least one constant feature")
-        elif (self.method == 3):
-            self.abs_max = np.abs(X).max(axis=0)
-            if ((self.abs_max == 0).any()):
-                raise ValueError("X has at least one feature that is all zeros")
+        match (self.method):
+            case 1:
+                self.avg, self.sigma = X.mean(axis=0), X.std(axis=0)
+                if ((self.sigma == 0).any()):
+                    raise ValueError("X has at least one constant feature")
+            case 2:
+                self.max, self.min= X.max(axis=0), X.min(axis=0)
+                if ((self.max - self.min == 0).any()):
+                    raise ValueError("X has at least one constant feature")
+            case 3:
+                self.abs_max = np.abs(X).max(axis=0)
+                if ((self.abs_max == 0).any()):
+                    raise ValueError("X has at least one feature that is all zeros")
         self.fitted = True
         return self
     def scale(self,X):
