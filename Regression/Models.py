@@ -110,8 +110,8 @@ class ridge_regression(base_model):
         b = 0
         for _ in range(epochs):
             error = y - (Xs @ w + b)
-            w -= lr * (-(2 / n) * (Xs.T @ error - self.alpha * w))
-            b -= lr * (-(2 / n) * error.sum())
+            w += lr * (2 * (Xs.T @ error - self.alpha * w))
+            b += lr * 2  * error.sum()
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
     def _coordinate_update(self, X, y, b, w_new, n, k):
         for i in range(k):
@@ -152,7 +152,7 @@ class elastic_net(base_model):
         b = 0
         for _ in range(epochs):
             error = y - (Xs @ w + b)
-            w += lr * ((1 / n) * (Xs.T @ error ) + self.alpha * (1- self.ratio) * w)
+            w += lr * ((1 / n) * (Xs.T @ error ) - self.alpha * (1- self.ratio) * w)
             w = self.sign(w) * np.maximum(np.abs(w)- lr * self.alpha * self.ratio, 0)
             b += lr * ((1 / n) * error.sum())
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
