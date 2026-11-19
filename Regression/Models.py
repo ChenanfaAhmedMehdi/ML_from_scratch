@@ -100,18 +100,25 @@ class ridge_regression(base_model):
         A = np.linalg.inv(Xb.T @ Xb + self.alpha * penalty) @ Xb.T @ y
         self.intercept_ = A[0]
         self.coef_ = A[1:]
-    def gradient_descent(self, X, y):
+    def gradient_descent(self, X, y, tol=1e-9, max_iter=100_000):
         X, y = self._prepare(X, y)
         n, k = X.shape
         scaler = scaling_model().fit(X)
         Xs = scaler.scale(X)
-        lr, epochs = self._determine_lr(Xs)
-        w = np.zeros(k).reshape(-1,1)
-        b = 0
-        for _ in range(epochs):
+        lr = self._determine_lr(Xs)
+        w = np.zeros((k, 1))
+        b = 0.0
+        prev_loss = self._loss_function(Xs, y, w, b)
+        for _ in range(max_iter):
             error = y - (Xs @ w + b)
             w += lr * (2 * (Xs.T @ error - self.alpha * w))
-            b += lr * 2  * error.sum()
+            b += lr * 2 * error.sum()
+            loss = self._loss_function(Xs, y, w, b)
+            if abs(prev_loss - loss) < tol:
+                break
+            prev_loss = loss
+        else:
+            raise RuntimeError("Not fitted due to insufficient number of iterations")
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
     def _loss_function(self, X, y, w, b):
         error = y - (X @ w + b)
@@ -145,19 +152,26 @@ class elastic_net(base_model):
         self.ratio = L1_ratio
     def fit(self,X,y):
         self.coordinate_descent(X,y)
-    def gradient_descent(self, X, y):
+    def gradient_descent(self, X, y, tol=1e-9, max_iter=100_000):
         X, y = self._prepare(X, y)
         n, k = X.shape
         scaler = scaling_model().fit(X)
         Xs = scaler.scale(X)
-        lr, epochs = self._determine_lr(Xs) # work on _determine_lr
-        w = np.zeros(k).reshape(-1,1)
-        b = 0
-        for _ in range(epochs):
+        lr = self._determine_lr(Xs)
+        w = np.zeros((k, 1))
+        b = 0.0
+        prev_loss = self._loss(Xs, y, w, b)
+        for _ in range(max_iter):
             error = y - (Xs @ w + b)
-            w += lr * ((1 / n) * (Xs.T @ error ) - self.alpha * (1- self.ratio) * w)
-            w = self.sign(w) * np.maximum(np.abs(w)- lr * self.alpha * self.ratio, 0)
-            b += lr * ((1 / n) * error.sum())
+            w += lr * ((1 / n) * (Xs.T @ error) - self.alpha * (1 - self.ratio) * w)
+            w = self.sign(w) * np.maximum(np.abs(w) - lr * self.alpha * self.ratio, 0)
+            b += lr * (1 / n) * error.sum()
+            loss = self._loss_function(Xs, y, w, b)
+            if abs(prev_loss - loss) < tol:
+                break
+            prev_loss = loss
+        else:
+            raise RuntimeError("Not fitted due to insufficient number of iterations")
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
     def _coordinate_update(self, X, y, b, w_new, n, k):
         for i in range(k):
