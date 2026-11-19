@@ -152,7 +152,7 @@ class elastic_net(base_model):
         self.ratio = L1_ratio
     def fit(self,X,y):
         self.coordinate_descent(X,y)
-    def gradient_descent(self, X, y, tol=1e-9, max_iter=100_000):
+    def proximal_gradient_descent(self, X, y, tol=1e-9, max_iter=100_000):
         X, y = self._prepare(X, y)
         n, k = X.shape
         scaler = scaling_model().fit(X)
