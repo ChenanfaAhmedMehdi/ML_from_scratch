@@ -150,8 +150,13 @@ class elastic_net(base_model):
         super().__init__()
         self.alpha = 1.0
         self.ratio = L1_ratio
-    def fit(self,X,y):
-        self.coordinate_descent(X,y)
+    def fit(self,X,y,method="CD"):
+        if (method =="CD"):
+            self.coordinate_descent(X,y)
+        elif (method == "PGD"):
+            self.proximal_gradient_descent(X,y)
+        else:
+            raise ValueError(f"unknown fitting method: {method}")
     def proximal_gradient_descent(self, X, y, tol=1e-9, max_iter=100_000):
         X, y = self._prepare(X, y)
         n, k = X.shape
