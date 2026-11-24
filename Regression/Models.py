@@ -120,9 +120,6 @@ class ridge_regression(base_model):
         else:
             raise RuntimeError("Not fitted due to insufficient number of iterations")
         self.coef_, self.intercept_ = scaler.descale_param(w, b)
-    def _loss_function(self, X, y, w, b):
-        error = y - (X @ w + b)
-        return float((error ** 2).sum() + self.alpha * (w ** 2).sum())
     def _coordinate_update(self, X, y, b, w_new, n, k):
         for i in range(k):
             X_i = X[:,i:i+1]
@@ -130,16 +127,16 @@ class ridge_regression(base_model):
             ri = X_i.T @ ((y - X @ w_new - b) + X_i * w_new[i,0])
             w_new[i] = ri / (zi + self.alpha)
         return w_new
+    def _loss_function(self, X, y, w, b):
+        error = y - (X @ w + b)
+        return float((error ** 2).sum() + self.alpha * (w ** 2).sum())
     def _determine_lr(self, Xs):
         n, k = Xs.shape
         A = np.column_stack([np.ones(n), Xs])
         penalty = np.diag([0.0] + [1.0] * k)
-        H = 2 * A.T @ A / n + 2 * (2 * self.alpha / n) * penalty
-        eig = np.linalg.eigvalsh(H)
-        lr = 1 / eig.max()
-        tol = 1e-9
-        k = np.log(1 / tol) / (lr * eig.min())
-        return lr, int(np.ceil(k))
+        H = 2 * (A.T @ A + self.alpha * penalty)
+        L = np.linalg.eigvalsh(H).max()
+        return 1 / L
 
 class linear_regression(ridge_regression):
     def __init__(self):
@@ -204,3 +201,14 @@ class elastic_net(base_model):
         return float((error ** 2).sum() / (2 * n)
                     + self.alpha * self.ratio * np.abs(w).sum()
                     + self.alpha * (1 - self.ratio) / 2 * (w ** 2).sum())
+    def _determine_lr(self, Xs):
+        n, k = Xs.shape
+        A = np.column_stack([np.ones(n), Xs])
+        penalty = np.diag([0.0] + [1.0] * k)
+        lambda2 = self.alpha * (1 - self.ratio)
+        H = A.T @ A / n + lambda2 * penalty
+        eig = np.linalg.eigvalsh(H)
+        mu, L = eig.min(), eig.max()
+        if mu <= 1e-12:
+            raise ValueError("Smooth part is not strongly convex; use ratio < 1 or drop collinear features.")
+        return 1 / L
